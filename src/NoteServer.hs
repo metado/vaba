@@ -38,22 +38,38 @@ import qualified Data.Aeson.Parser
 import qualified Text.Blaze.Html
 
 import Data
+import Config
 
-type NoteAPI = "notes" :> Get '[JSON] [Note]
+type NoteAPI = "notes" :> Get '[JSON] (IntHeaders [Note])
+          :<|> "notes" :> Capture "id" String :> Get '[JSON] (Maybe Note)
+          :<|> "notes" :> ReqBody '[JSON] Note :> Post '[JSON] HelloMessage
 
 data SortBy = PubDate | Title deriving (Eq, Show)
 
 noteAPI :: Proxy NoteAPI
 noteAPI = Proxy
 
+type IntHeaders a = (Headers '[Header "X-An-Int" Int] a)
 
-initServer :: IO (Server NoteAPI)
-initServer = do
-  notes <- listNotes
-  return $ return notes
+-- | Construct a value with list of custom headers
+addIntHeader :: Int -> a -> IntHeaders a
+addIntHeader i a = addHeader i a
 
+server :: [Note] -> Server NoteAPI
+server notes = getNotes :<|> getNote :<|> postNote
+  where getNotes :: Handler (Headers '[Header "X-An-Int" Int] [Note])
+        getNotes = return $ addIntHeader 1797 notes
 
-app :: IO Application
-app = do
-  server <- initServer
-  return $ serve noteAPI server
+        getNote :: String -> Handler (Maybe Note)
+        getNote id = return $ find (\n -> noteId n == id) notes 
+
+        postNote :: Note -> Handler HelloMessage
+        postNote note = do 
+          _ <- liftIO $ putStrLn "Hello!"
+          return $ HelloMessage { msg = "Thanks!" }
+
+app :: Config -> IO Application
+app config = do
+  notes <- listNotes $ notesDir config
+  let s = server notes
+  return $ serve noteAPI s

@@ -15,13 +15,16 @@ cabal-version:       >=1.10
 executable server
   main-is:             Main.hs
   other-modules:       Data
+                     , Config
                      , NoteServer
   -- other-extensions:    
   build-depends:       base >=4.9
                      , base-compat
                      , text
+                     , aeson
                      , string-conversions
                      , time
+                     , time-compat
                      , directory
                      , bytestring
                      , mtl
@@ -30,9 +33,10 @@ executable server
                      , blaze-markup
                      , blaze-html
                      , lucid
+                     , dhall
+                     , cmark
                      , servant
                      , servant-server
-                     , aeson
                      , wai 
                      , warp 
   hs-source-dirs:      src
