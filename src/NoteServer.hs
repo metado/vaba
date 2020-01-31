@@ -49,27 +49,32 @@ data SortBy = PubDate | Title deriving (Eq, Show)
 noteAPI :: Proxy NoteAPI
 noteAPI = Proxy
 
+-- | Custom headers, reminder
 type IntHeaders a = (Headers '[Header "X-An-Int" Int] a)
 
 -- | Construct a value with list of custom headers
 addIntHeader :: Int -> a -> IntHeaders a
 addIntHeader i a = addHeader i a
 
-server :: [Note] -> Server NoteAPI
-server notes = getNotes :<|> getNote :<|> postNote
+server :: Config -> Server NoteAPI
+server config = getNotes :<|> getNote :<|> postNote
   where getNotes :: Handler (Headers '[Header "X-An-Int" Int] [Note])
-        getNotes = return $ addIntHeader 1797 notes
+        getNotes = do
+          notes <- readNotes
+          return $ addIntHeader 1797 notes
 
         getNote :: String -> Handler (Maybe Note)
-        getNote id = return $ find (\n -> noteId n == id) notes 
+        getNote id = do
+          notes <- readNotes
+          return $ find (\n -> noteId n == id) notes 
 
         postNote :: Note -> Handler HelloMessage
         postNote note = do 
           _ <- liftIO $ putStrLn "Hello!"
           return $ HelloMessage { msg = "Thanks!" }
 
+        readNotes :: Handler [Note]
+        readNotes = liftIO $ listNotes $ notesDir config
+
 app :: Config -> IO Application
-app config = do
-  notes <- listNotes $ notesDir config
-  let s = server notes
-  return $ serve noteAPI s
+app config = return $ serve noteAPI $ server config
