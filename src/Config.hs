@@ -15,4 +15,3 @@ instance FromDhall Config
 
 loadConfig :: FilePath -> IO Config
 loadConfig path = input auto $ T.pack path
-
