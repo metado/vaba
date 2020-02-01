@@ -6,18 +6,21 @@ import Control.Applicative
 import Database.SQLite.Simple
 import Database.SQLite.Simple.FromRow
 
--- import Config
--- 
--- data TestField = TestField Int String deriving (Show)
--- 
--- instance FromRow TestField where
---   fromRow = TestField <$> field <*> field
--- 
--- printData :: Config -> IO ()
--- printData config = do
---   conn <- open "test.db"
---   execute conn "INSERT INTO test (str) VALUES (?)"
---     (Only ("test string 2" :: String))
---   r <- query_ conn "SELECT * from test" :: IO [TestField]
---   mapM_ print r
---   close conn
+import Config
+import qualified Data as D
+
+getData :: Config -> IO [D.Post]
+getData config = do
+  conn <- open $ dbPath config
+  r <- query_ conn "SELECT * from posts" :: IO [D.Post]
+  mapM_ print r
+  close conn
+  return r
+
+
+addData :: Config -> IO ()
+addData config = do
+  conn <- open $ dbPath config
+  execute conn "INSERT INTO posts (str) VALUES (?)"
+    (Only ("posts string 2" :: String))
+  close conn
