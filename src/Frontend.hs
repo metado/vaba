@@ -11,7 +11,7 @@ import           Servant.API  ((:>), Capture, Get, JSON)
 import           Servant.Elm  (DefineElm (DefineElm), Proxy (Proxy), defElmImports, defElmOptions,
                                generateElmModuleWith)
 
-import NoteServer
+import Server
 import Data
 
 main :: IO ()

@@ -1,4 +1,4 @@
-name:                backend
+name:                vaba
 version:             0.1.0.0
 -- synopsis:            
 -- description:         
@@ -16,7 +16,7 @@ executable server
   main-is:             Main.hs
   other-modules:       Data
                      , Config
-                     , NoteServer
+                     , Server
                      , Frontend
   -- other-extensions:    
   build-depends:       base >=4.9

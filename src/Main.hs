@@ -11,7 +11,7 @@ import System.Directory (listDirectory, getModificationTime)
 import Servant.API
 
 import Data
-import NoteServer
+import Server
 import Config (loadConfig, Config)
 
 import Network.Wai.Handler.Warp

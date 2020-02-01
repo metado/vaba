@@ -8,7 +8,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators #-}
 
-module NoteServer (NoteAPI, noteAPI, app) where
+module Server (NoteAPI, noteAPI, app) where
 
 
 import Prelude ()
