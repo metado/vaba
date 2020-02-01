@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -49,24 +50,5 @@ newtype ResultMessage = ResultMessage { msg :: String } deriving Generic
 ED.deriveBoth ED.defaultOptions ''Post
 ED.deriveBoth ED.defaultOptions ''ResultMessage
 
-getTitle :: Node -> Either String String
-getTitle node = case node of
-  Node (Just _) DOCUMENT children -> orError "a whole document" children
-  Node (Just _) (HEADING 1) children -> orError "a heading" children
-  Node (Just _) (TEXT text) _ -> Right $ T.unpack text
-  _ -> Left "No title"
-  where 
-    orError t ns = case ns of
-      [] -> Left $ "No nodes in " ++ t
-      n : _ -> getTitle n
+data Message = TextMessage UTCTime String | FriendshipRequest UTCTime
 
-makeId :: String -> String
-makeId = let repl '/' = '-'
-             repl '.' = '-'
-             repl  c  = c
-             strip = dropWhile (== '-')
-  in strip . map repl
-
-merge :: Either a a -> a
-merge (Right a) = a
-merge (Left a) = a
