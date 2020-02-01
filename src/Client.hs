@@ -1,5 +1,3 @@
-#!/usr/bin/env stack
--- stack script --resolver lts-12.21
 {-# LANGUAGE OverloadedStrings #-}
 
 module Client (client) where

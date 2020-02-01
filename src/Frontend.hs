@@ -18,8 +18,8 @@ main :: IO ()
 main =
   generateElmModuleWith
     defElmOptions
-    [ "Generated" , "NoteAPI" ]
+    [ "Generated" , "PostAPI" ]
     defElmImports
     "elm-src"
-    [ DefineElm (Proxy :: Proxy Note) ]
+    [ DefineElm (Proxy :: Proxy Post) ]
     (noteAPI)

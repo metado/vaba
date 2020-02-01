@@ -8,7 +8,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Server (NoteAPI, noteAPI, app) where
+module Server (PostAPI, noteAPI, app) where
 
 
 import Prelude ()
@@ -37,20 +37,20 @@ import Servant.Types.SourceT (source)
 import qualified Data.Aeson.Parser
 import qualified Text.Blaze.Html
 
-import Data
+import qualified Data as D
 import Config
 
-type NoteAPI = "notes" :> Get '[JSON] (IntHeaders [Note])
-          :<|> "notes" :> Capture "id" String :> Get '[JSON] (Maybe Note)
-          :<|> "notes" :> ReqBody '[JSON] Note :> Post '[JSON] HelloMessage
+type PostAPI = "notes" :> Get '[JSON] (IntHeaders [D.Post])
+          :<|> "notes" :> Capture "id" String :> Get '[JSON] (Maybe D.Post)
+          :<|> "notes" :> ReqBody '[JSON] D.Post :> Post '[JSON] D.HelloMessage
 
 type Aux = "static" :> Raw
 
-type AppAPI = NoteAPI :<|> Aux
+type AppAPI = PostAPI :<|> Aux
 
 data SortBy = PubDate | Title deriving (Eq, Show)
 
-noteAPI :: Proxy NoteAPI
+noteAPI :: Proxy PostAPI
 noteAPI = Proxy
 
 appAPI :: Proxy AppAPI
@@ -63,25 +63,22 @@ type IntHeaders a = (Headers '[Header "X-An-Int" Int] a)
 addIntHeader :: Int -> a -> IntHeaders a
 addIntHeader i a = addHeader i a
 
-noteServer :: Config -> Server NoteAPI
-noteServer config = getNotes :<|> getNote :<|> postNote
-  where getNotes :: Handler (Headers '[Header "X-An-Int" Int] [Note])
-        getNotes = do
-          notes <- readNotes
+noteServer :: Config -> Server PostAPI
+noteServer config = getPosts :<|> getPost :<|> postPost
+  where getPosts :: Handler (Headers '[Header "X-An-Int" Int] [D.Post])
+        getPosts = do
+          notes <- readPosts
           return $ addIntHeader 1797 notes
 
-        getNote :: String -> Handler (Maybe Note)
-        getNote id = do
-          notes <- readNotes
-          return $ find (\n -> noteId n == id) notes 
+        getPost :: String -> Handler (Maybe D.Post)
+        getPost id = undefined
 
-        postNote :: Note -> Handler HelloMessage
-        postNote note = do 
+        postPost :: D.Post -> Handler D.HelloMessage
+        postPost note = do 
           _ <- liftIO $ putStrLn "Hello!"
-          return $ HelloMessage { msg = "Thanks!" }
+          return $ D.HelloMessage { D.msg = "Thanks!" }
 
-        readNotes :: Handler [Note]
-        readNotes = liftIO $ listNotes $ notesDir config
+        readPosts = undefined
 
 server :: Config -> Server AppAPI
 server config = (noteServer config) :<|> (serveDirectoryWebApp $ staticDir config)

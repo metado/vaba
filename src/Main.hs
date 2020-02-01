@@ -6,7 +6,6 @@ module Main where
 import Data.Text
 import Data.Time (UTCTime)
 import System.Environment (getArgs)
-import System.Directory (listDirectory, getModificationTime)
 
 import Servant.API
 
