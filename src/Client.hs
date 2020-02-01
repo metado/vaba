@@ -4,9 +4,9 @@ module Client (client) where
 
 import qualified Data.ByteString.Lazy.Char8 as L8
 import           Network.HTTP.Simple
-import           Post
+import           Data
 
-feed :: [Post]
+feed :: IO [Post]
 feed = do
     response <- httpLBS "http://httpbin.org/get"
 
