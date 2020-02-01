@@ -1,5 +1,5 @@
 { notesDir = "./notes/" 
 , staticDir = "./elm-src/"
 , dbPath = "test.db"
-, friends = [] : List Text
+, friends = ["192.169.0.33", "192.168.0.36", "192.168.0.12"] : List Text
 }
