@@ -1,4 +1,5 @@
 { notesDir = "./notes/" 
 , staticDir = "./elm-src/"
 , dbPath = "test.db"
+, friends = [] : List Text
 }

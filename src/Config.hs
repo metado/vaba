@@ -12,7 +12,9 @@ data Config = Config {
   notesDir :: FilePath
 , staticDir :: FilePath
 , dbPath :: FilePath 
+, friends :: [String]
 } deriving (Generic, Show)
+
 
 instance FromDhall Config
 
@@ -24,4 +26,5 @@ defaultConfig = Config {
   notesDir = "./notes/"
 , staticDir = "./elm-src/"
 , dbPath = "test.db"
+, friends = []
 }
