@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE RecordWildCards #-}
 
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -23,6 +24,8 @@ import qualified Data.Text as T
 import qualified Elm.Derive as ED
 
 import Database.SQLite.Simple.FromRow
+import Database.SQLite.Simple.ToRow
+import Database.SQLite.Simple.Types (Only(..))
 
 import Servant.API hiding (Post)
 
@@ -36,6 +39,9 @@ data Post = Post {
 
 instance FromRow Post where
   fromRow = Post <$> field <*> field <*> field
+
+instance ToRow Post where
+  toRow Post{..} = toRow (body, author, pubDate)
 
 newtype HelloMessage = HelloMessage { msg :: String } deriving Generic
 instance ToJSON HelloMessage
@@ -60,12 +66,6 @@ makeId = let repl '/' = '-'
              repl  c  = c
              strip = dropWhile (== '-')
   in strip . map repl
-
-listPosts :: FilePath -> IO [Post]
-listPosts path = undefined
-
-initPost :: FilePath -> IO Post
-initPost path = undefined
 
 merge :: Either a a -> a
 merge (Right a) = a

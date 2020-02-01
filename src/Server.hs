@@ -38,10 +38,10 @@ import qualified Data.Aeson.Parser
 import qualified Text.Blaze.Html
 
 import qualified Data as D
+import qualified Database as DB
 import Config
 
-type PostAPI = "notes" :> Get '[JSON] (IntHeaders [D.Post])
-          :<|> "notes" :> Capture "id" String :> Get '[JSON] (Maybe D.Post)
+type PostAPI = "notes" :> Get '[JSON] [D.Post]
           :<|> "notes" :> ReqBody '[JSON] D.Post :> Post '[JSON] D.HelloMessage
 
 type Aux = "static" :> Raw
@@ -56,29 +56,16 @@ noteAPI = Proxy
 appAPI :: Proxy AppAPI
 appAPI = Proxy
 
--- | Custom headers, reminder
-type IntHeaders a = (Headers '[Header "X-An-Int" Int] a)
-
--- | Construct a value with list of custom headers
-addIntHeader :: Int -> a -> IntHeaders a
-addIntHeader i a = addHeader i a
-
 noteServer :: Config -> Server PostAPI
-noteServer config = getPosts :<|> getPost :<|> postPost
-  where getPosts :: Handler (Headers '[Header "X-An-Int" Int] [D.Post])
+noteServer config = getPosts :<|> postPost
+  where getPosts :: Handler [D.Post]
         getPosts = do
-          notes <- readPosts
-          return $ addIntHeader 1797 notes
-
-        getPost :: String -> Handler (Maybe D.Post)
-        getPost id = undefined
+          liftIO $ DB.getPosts config
 
         postPost :: D.Post -> Handler D.HelloMessage
         postPost note = do 
-          _ <- liftIO $ putStrLn "Hello!"
+          _ <- liftIO $ DB.addPost config note
           return $ D.HelloMessage { D.msg = "Thanks!" }
-
-        readPosts = undefined
 
 server :: Config -> Server AppAPI
 server config = (noteServer config) :<|> (serveDirectoryWebApp $ staticDir config)
