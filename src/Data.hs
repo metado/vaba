@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE RecordWildCards #-}
 
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -22,22 +23,31 @@ import qualified Data.Text as T
 
 import qualified Elm.Derive as ED
 
-import Servant.API
+import Database.SQLite.Simple.FromRow
+import Database.SQLite.Simple.ToRow
+import Database.SQLite.Simple.Types (Only(..))
+
+import Servant.API hiding (Post)
 
 import System.Directory (listDirectory, getModificationTime)
 
-data Note = Note {
-  noteId :: String,             -- ^ Unique id of a note (filename)
-  title :: String,
-  content :: String,
+data Post = Post {
+  body :: String,
+  author :: String,
   pubDate :: UTCTime
 } deriving (Eq, Show, Generic)
+
+instance FromRow Post where
+  fromRow = Post <$> field <*> field <*> field
+
+instance ToRow Post where
+  toRow Post{..} = toRow (body, author, pubDate)
 
 newtype HelloMessage = HelloMessage { msg :: String } deriving Generic
 instance ToJSON HelloMessage
 
 -- Automatically derive ToJSON and FromJSON
-ED.deriveBoth ED.defaultOptions ''Note
+ED.deriveBoth ED.defaultOptions ''Post
 
 getTitle :: Node -> Either String String
 getTitle node = case node of
@@ -56,21 +66,6 @@ makeId = let repl '/' = '-'
              repl  c  = c
              strip = dropWhile (== '-')
   in strip . map repl
-
-listNotes :: FilePath -> IO [Note]
-listNotes path = do 
-  files <- listDirectory path
-  traverse initNote $ fmap (\f -> path ++ "/" ++ f) files
-
-initNote :: FilePath -> IO Note
-initNote path = do
-  time <- getModificationTime path
-  content <- readFile path
-  let doc = commonmarkToNode [] $ T.pack content
-  let title = merge $ getTitle doc
-  _ <- print doc
-  return $ Note (makeId path) title content time
-
 
 merge :: Either a a -> a
 merge (Right a) = a

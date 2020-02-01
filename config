@@ -1,3 +1,4 @@
 { notesDir = "./notes/" 
 , staticDir = "./elm-src/"
+, dbPath = "test.db"
 }
