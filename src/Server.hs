@@ -41,8 +41,8 @@ import qualified Data as D
 import qualified Database as DB
 import Config
 
-type PostAPI = "notes" :> Get '[JSON] [D.Post]
-          :<|> "notes" :> ReqBody '[JSON] D.Post :> Post '[JSON] D.HelloMessage
+type PostAPI = "posts" :> Get '[JSON] [D.Post]
+          :<|> "posts" :> ReqBody '[JSON] D.Post :> Post '[JSON] D.HelloMessage
 
 type Aux = "static" :> Raw
 

@@ -32,8 +32,8 @@ jsonEncPost  val =
    ]
 
 
-getNotes : (Result Http.Error  ((List Post))  -> msg) -> Cmd msg
-getNotes toMsg =
+getPosts : (Result Http.Error  ((List Post))  -> msg) -> Cmd msg
+getPosts toMsg =
     let
         params =
             List.filterMap identity
@@ -47,7 +47,7 @@ getNotes toMsg =
                 []
             , url =
                 Url.Builder.crossOrigin ""
-                    [ "notes"
+                    [ "posts"
                     ]
                     params
             , body =
@@ -60,8 +60,8 @@ getNotes toMsg =
                 Nothing
             }
 
-postNotes : Post -> (Result Http.Error  (HelloMessage)  -> msg) -> Cmd msg
-postNotes body toMsg =
+postPosts : Post -> (Result Http.Error  (HelloMessage)  -> msg) -> Cmd msg
+postPosts body toMsg =
     let
         params =
             List.filterMap identity
@@ -75,7 +75,7 @@ postNotes body toMsg =
                 []
             , url =
                 Url.Builder.crossOrigin ""
-                    [ "notes"
+                    [ "posts"
                     ]
                     params
             , body =
