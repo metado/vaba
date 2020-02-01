@@ -3,17 +3,11 @@
 
 module Main where
 
-import Data.Text
-import Data.Time (UTCTime)
-import System.Environment (getArgs)
+import           System.Environment (getArgs)
+import           Network.Wai.Handler.Warp (run)
 
-import Servant.API
-
-import Data
-import Server
-import Config (loadConfig, Config)
-
-import Network.Wai.Handler.Warp
+import           Api.Server (app)
+import qualified Config as Config
 
 parseArgs :: [String] -> String
 parseArgs args = case args of
@@ -23,5 +17,5 @@ parseArgs args = case args of
 main :: IO ()
 main = do
     configPath <- fmap parseArgs getArgs
-    config <- loadConfig configPath
+    config <- Config.loadConfig configPath
     (app config) >>= \a -> run 8081 a

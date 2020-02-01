@@ -1,36 +1,20 @@
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeOperators     #-}
 
 module Data where
 
-import GHC.Generics
+import           GHC.Generics
 
-import Data.Time (UTCTime)
+import           Data.Time (UTCTime)
 
-import Data.Aeson
-import Data.Aeson.Types
+import           Data.Functor.Identity
+import qualified Elm.Derive                     as ED
+import           Database.SQLite.Simple.FromRow
+import           Database.SQLite.Simple.ToRow
+import           Servant.API                    hiding (Post)
 
-import CMark (commonmarkToNode, Node(..), NodeType(..))
-
-import Data.Functor.Identity
-import qualified Data.Text as T
-
-import qualified Elm.Derive as ED
-
-import Database.SQLite.Simple.FromRow
-import Database.SQLite.Simple.ToRow
-import Database.SQLite.Simple.Types (Only(..))
-
-import Servant.API hiding (Post)
-
-import System.Directory (listDirectory, getModificationTime)
 
 data Post = Post {
   body :: String,

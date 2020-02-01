@@ -3,12 +3,11 @@
 
 module Client (feed, feedFor) where
 
-import qualified Data.ByteString.Lazy.Internal as Internal 
 import qualified Data.ByteString.Lazy.Char8 as L8
 import qualified Data.ByteString.Lazy as Lazy
 import           Data.Aeson
 import           Network.HTTP.Simple
-import qualified Data.Text as T
+
 import           Data
 import           Config
 
@@ -42,4 +41,3 @@ parse str = decode str
 
 makeRequest :: String -> IO Request
 makeRequest ip = parseRequest $ "http://" ++ ip ++ ":8081/posts"
-
