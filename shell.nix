@@ -14,6 +14,8 @@ in pkgs.stdenv.mkDerivation rec {
     pkgs.cabal-install
     pkgs.cabal2nix
 
+    pkgs.elmPackages.elm
+
     pkgs.figlet
   ];
 
