@@ -4,23 +4,17 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Feed (FeedAPI, feedAPI, feedServer) where
-
-import           Prelude.Compat
+module Api.Feed (FeedAPI, feedServer) where
 
 import           Control.Monad.Except
 import           Servant
 
 import           Config
 import qualified Data       as D
-import qualified Database   as DB
 import qualified Client     as C
 
 
 type FeedAPI = "feed" :> Get '[JSON] [D.Post]
-
-feedAPI :: Proxy FeedAPI
-feedAPI = Proxy
 
 feedServer :: Config -> Server FeedAPI
 feedServer config = getFeed

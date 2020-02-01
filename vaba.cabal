@@ -16,11 +16,12 @@ executable server
   main-is:             Main.hs
   other-modules:       Data
                      , Config
-                     , Server
                      , Frontend
                      , Client
-                     , Feed
                      , Database
+                     , Api.Server
+                     , Api.Feed
+                     , Api.PostApi
   -- other-extensions:    
   build-depends:       base >=4.9
                      , base-compat
@@ -45,9 +46,9 @@ executable server
                      , elm-bridge
                      , wai 
                      , warp 
-		     , http-conduit
+                     , http-conduit
                      , sqlite-simple
                      , aeson
- hs-source-dirs:      src
+ hs-source-dirs:       src
   default-language:    Haskell2010
 

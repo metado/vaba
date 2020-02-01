@@ -1,12 +1,9 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Config (Config(..), loadConfig, defaultConfig) where
 
 import qualified Data.Text as T
-
-import Dhall
+import           Dhall
 
 data Config = Config { 
   notesDir :: FilePath

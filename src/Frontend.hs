@@ -6,20 +6,17 @@
 module Frontend where
 
 import           Elm.Derive   (defaultOptions, deriveBoth)
-
-import           Servant.API  ((:>), Capture, Get, JSON)
 import           Servant.Elm  (DefineElm (DefineElm), Proxy (Proxy), defElmImports, defElmOptions,
                                generateElmModuleWith)
 
-import Server
-import Data
+import           Data
+import           Api.Server
+import           Api.PostApi
 
-main :: IO ()
-main =
-  generateElmModuleWith
-    defElmOptions
-    [ "Generated" , "PostAPI" ]
+generate :: IO ()
+generate =
+  generateElmModuleWith defElmOptions [ "Generated" , "PostAPI" ]
     defElmImports
     "elm-src"
     [ DefineElm (Proxy :: Proxy Post), DefineElm (Proxy :: Proxy ResultMessage) ]
-    (noteAPI)
+    (postAPI)
