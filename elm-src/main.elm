@@ -55,7 +55,7 @@ init _ =
   ( Loading
   , Http.get
         {
-            url = "/posts",
+            url = "/feed",
             expect = Http.expectJson GotText postListDecoder
         }
   )
@@ -78,7 +78,7 @@ update msg model =
         (Loading, 
             Http.get
             {
-                url = "/posts",
+                url = "/feed",
                 expect = Http.expectJson GotText postListDecoder
             }
         )

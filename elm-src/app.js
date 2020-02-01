@@ -6131,7 +6131,7 @@ var $author$project$Main$init = function (_v0) {
 		$elm$http$Http$get(
 			{
 				expect: A2($elm$http$Http$expectJson, $author$project$Main$GotText, $author$project$Main$postListDecoder),
-				url: '/posts'
+				url: '/feed'
 			}));
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
@@ -6156,7 +6156,7 @@ var $author$project$Main$update = F2(
 				$elm$http$Http$get(
 					{
 						expect: A2($elm$http$Http$expectJson, $author$project$Main$GotText, $author$project$Main$postListDecoder),
-						url: '/posts'
+						url: '/feed'
 					}));
 		} else {
 			var result = msg.a;
