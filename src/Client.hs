@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Client (feed) where
+module Client (feed, feedFor) where
 
 import qualified Data.ByteString.Lazy.Internal as Internal 
 import qualified Data.ByteString.Lazy.Char8 as L8
