@@ -44,10 +44,17 @@ type NoteAPI = "notes" :> Get '[JSON] (IntHeaders [Note])
           :<|> "notes" :> Capture "id" String :> Get '[JSON] (Maybe Note)
           :<|> "notes" :> ReqBody '[JSON] Note :> Post '[JSON] HelloMessage
 
+type Aux = "static" :> Raw
+
+type AppAPI = NoteAPI :<|> Aux
+
 data SortBy = PubDate | Title deriving (Eq, Show)
 
 noteAPI :: Proxy NoteAPI
 noteAPI = Proxy
+
+appAPI :: Proxy AppAPI
+appAPI = Proxy
 
 -- | Custom headers, reminder
 type IntHeaders a = (Headers '[Header "X-An-Int" Int] a)
@@ -56,8 +63,8 @@ type IntHeaders a = (Headers '[Header "X-An-Int" Int] a)
 addIntHeader :: Int -> a -> IntHeaders a
 addIntHeader i a = addHeader i a
 
-server :: Config -> Server NoteAPI
-server config = getNotes :<|> getNote :<|> postNote
+noteServer :: Config -> Server NoteAPI
+noteServer config = getNotes :<|> getNote :<|> postNote
   where getNotes :: Handler (Headers '[Header "X-An-Int" Int] [Note])
         getNotes = do
           notes <- readNotes
@@ -76,5 +83,8 @@ server config = getNotes :<|> getNote :<|> postNote
         readNotes :: Handler [Note]
         readNotes = liftIO $ listNotes $ notesDir config
 
+server :: Config -> Server AppAPI
+server config = (noteServer config) :<|> (serveDirectoryWebApp $ staticDir config)
+
 app :: Config -> IO Application
-app config = return $ serve noteAPI $ server config
+app config = return $ serve appAPI $ server config

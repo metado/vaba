@@ -1,1 +1,3 @@
-{ notesDir = "./notes/" }
+{ notesDir = "./notes/" 
+, staticDir = "./elm-src/"
+}
