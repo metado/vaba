@@ -84,7 +84,7 @@ noteServer config = getNotes :<|> getNote :<|> postNote
         readNotes = liftIO $ listNotes $ notesDir config
 
 server :: Config -> Server AppAPI
-server config = (noteServer config) :<|> serveDirectoryWebApp "/Users/antonparkhomenko/workspace/sandbox/dovlatov/elm-src"
+server config = (noteServer config) :<|> (serveDirectoryWebApp $ staticDir config)
 
 app :: Config -> IO Application
 app config = return $ serve appAPI $ server config
