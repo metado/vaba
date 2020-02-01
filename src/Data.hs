@@ -43,11 +43,11 @@ instance FromRow Post where
 instance ToRow Post where
   toRow Post{..} = toRow (body, author, pubDate)
 
-newtype HelloMessage = HelloMessage { msg :: String } deriving Generic
-instance ToJSON HelloMessage
+newtype ResultMessage = ResultMessage { msg :: String } deriving Generic
 
 -- Automatically derive ToJSON and FromJSON
 ED.deriveBoth ED.defaultOptions ''Post
+ED.deriveBoth ED.defaultOptions ''ResultMessage
 
 getTitle :: Node -> Either String String
 getTitle node = case node of

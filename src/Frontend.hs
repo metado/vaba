@@ -21,5 +21,5 @@ main =
     [ "Generated" , "PostAPI" ]
     defElmImports
     "elm-src"
-    [ DefineElm (Proxy :: Proxy Post) ]
+    [ DefineElm (Proxy :: Proxy Post), DefineElm (Proxy :: Proxy ResultMessage) ]
     (noteAPI)

@@ -18,7 +18,8 @@ executable server
                      , Config
                      , Server
                      , Frontend
-		     , Client
+                     , Client
+                     , Feed
                      , Database
   -- other-extensions:    
   build-depends:       base >=4.9

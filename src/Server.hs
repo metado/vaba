@@ -42,7 +42,7 @@ import qualified Database as DB
 import Config
 
 type PostAPI = "posts" :> Get '[JSON] [D.Post]
-          :<|> "posts" :> ReqBody '[JSON] D.Post :> Post '[JSON] D.HelloMessage
+          :<|> "posts" :> ReqBody '[JSON] D.Post :> Post '[JSON] D.ResultMessage
 
 type Aux = "static" :> Raw
 
@@ -59,13 +59,12 @@ appAPI = Proxy
 noteServer :: Config -> Server PostAPI
 noteServer config = getPosts :<|> postPost
   where getPosts :: Handler [D.Post]
-        getPosts = do
-          liftIO $ DB.getPosts config
+        getPosts = liftIO $ DB.getPosts config
 
-        postPost :: D.Post -> Handler D.HelloMessage
+        postPost :: D.Post -> Handler D.ResultMessage
         postPost note = do 
-          _ <- liftIO $ DB.addPost config note
-          return $ D.HelloMessage { D.msg = "Thanks!" }
+          liftIO $ DB.addPost config note
+          return $ D.ResultMessage { D.msg = "Thanks!" }
 
 server :: Config -> Server AppAPI
 server config = (noteServer config) :<|> (serveDirectoryWebApp $ staticDir config)
