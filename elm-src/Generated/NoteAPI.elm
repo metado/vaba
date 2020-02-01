@@ -1,7 +1,8 @@
 module Generated.NoteAPI exposing(..)
 
 import Json.Decode
-import Json.Encode exposing (Value)
+import Json.Encode
+import Json.Decode exposing (..)
 -- The following module comes from bartavelle/json-helpers
 import Json.Helpers exposing (..)
 import Dict exposing (Dict)
@@ -9,6 +10,7 @@ import Set
 import Http
 import String
 import Url.Builder
+import Time exposing(..)
 
 type alias Note  =
    { noteId: String
@@ -17,13 +19,14 @@ type alias Note  =
    , pubDate: Posix
    }
 
+
 jsonDecNote : Json.Decode.Decoder ( Note )
 jsonDecNote =
    Json.Decode.succeed (\pnoteId ptitle pcontent ppubDate -> {noteId = pnoteId, title = ptitle, content = pcontent, pubDate = ppubDate})
    |> required "noteId" (Json.Decode.string)
    |> required "title" (Json.Decode.string)
    |> required "content" (Json.Decode.string)
-   |> required "pubDate" (jsonDecPosix)
+   |> required "pubDate" (Json.Decode.decodeString)
 
 jsonEncNote : Note -> Value
 jsonEncNote  val =
@@ -31,7 +34,7 @@ jsonEncNote  val =
    [ ("noteId", Json.Encode.string val.noteId)
    , ("title", Json.Encode.string val.title)
    , ("content", Json.Encode.string val.content)
-   , ("pubDate", jsonEncPosix val.pubDate)
+   , ("pubDate", Json.Encode.encodeString val.pubDate)
    ]
 
 

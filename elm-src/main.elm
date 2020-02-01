@@ -3,11 +3,33 @@
 -- Read how it works:
 --   https://guide.elm-lang.org/effects/http.html
 --
+module Main exposing (..)
 
 import Browser
-import Html exposing (Html, text, pre, div, button)
+import Html exposing (Html, text, pre, div, button, li, ul, br)
 import Html.Events exposing (onClick)
+import Json.Decode exposing (Decoder, field, string, int)
 import Http
+
+-- import Json.Decode as JD exposing (field, Decoder, int, string)
+
+type alias Post  =
+   { body: String
+   , author: String
+   , pubDate: String
+   }
+
+postDecoder : Decoder Post
+postDecoder =
+  Json.Decode.map3 Post
+    (field "body" string)
+    (field "author" string)
+    (field "pubDate" string)
+
+
+postListDecoder : Decoder (List Post)
+postListDecoder =
+  Json.Decode.list postDecoder
 
 -- MAIN
 
@@ -23,45 +45,54 @@ main =
 -- MODEL
 
 type Model
-  = Failure
+  = Failure String
   | Loading
-  | Success String
+  | Success (List Post)
 
 
-init : () -> (Model, Cmd Msg)
+init : () -> (Model, Cmd (Msg))
 init _ =
   ( Loading
   , Http.get
-      {
-          url = "https://elm-lang.org/assets/public-opinion.txt",
-          expect = Http.expectString GotText
-      }
+        {
+            url = "/posts",
+            expect = Http.expectJson GotText postListDecoder
+        }
   )
 
 -- UPDATE
 
-type Msg = GotText (Result Http.Error String) | LoadNew
+type Msg = GotText (Result Http.Error (List Post)) | LoadNew
+
+--fromPosts : List Post -> Msg
+--fromPosts posts = GotText (Ok posts)
 
 type SuperString = Super String
 
+
+-- expectJson : (Result Error a -> msg) -> Decoder a -> Expect msg
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     LoadNew ->
-        (Failure, 
+        (Loading, 
             Http.get
             {
-                url = "https://elm-lang.org/assets/public-opinion.txt",
-                expect = Http.expectString GotText
+                url = "/posts",
+                expect = Http.expectJson GotText postListDecoder
             }
         )
     GotText result ->
       case result of
-        Ok fullText ->
-          (Success fullText, Cmd.none)
-        Err _ ->
-          (Failure, Cmd.none)
+        Ok list ->
+          (Success list, Cmd.none)
+        Err e ->
+          (Failure (Debug.toString e), Cmd.none)
 
+
+noteDecoder : Decoder String
+noteDecoder =
+   (field "body" string)
 
 -- SUBSCRIPTIONS
 
@@ -71,16 +102,25 @@ subscriptions model =
 
 -- VIEW
 
+headIsu: List Post -> Post
+headIsu posts = case (List.head posts) of
+  Nothing -> Post "fo" "fo" "dsfgsdfg"
+  Just p -> p
+
+renderList : List Post -> Html Msg
+renderList lst =  ul [] (List.map(\s -> li [] [ div [] [text s.body, br[][], (text s.author),br[][], (text s.pubDate) ]]) lst)
+--renderList lst =  div [] [ text (String.fromInt (List.length lst)) ]
+
 view : Model -> Html Msg
 view model =
   case model of
-    Failure ->
-      text "I was unable to load your book."
+    Failure e ->
+      text e
 
     Loading ->
       text "Loading..."
 
-    Success fullText ->
+    Success list ->
       div [] [ 
           button [ onClick LoadNew ] [ text "Load New!!" ],
-          pre [] [ text fullText ]] 
+          pre [] [ renderList list ]] 

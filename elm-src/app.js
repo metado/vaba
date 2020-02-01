@@ -5323,6 +5323,7 @@ var $author$project$Main$GotText = function (a) {
 	return {$: 'GotText', a: a};
 };
 var $author$project$Main$Loading = {$: 'Loading'};
+var $elm$json$Json$Decode$decodeString = _Json_runOnString;
 var $elm$http$Http$BadStatus_ = F2(
 	function (a, b) {
 		return {$: 'BadStatus_', a: a, b: b};
@@ -5878,17 +5879,6 @@ var $elm$http$Http$expectStringResponse = F2(
 			$elm$core$Basics$identity,
 			A2($elm$core$Basics$composeR, toResult, toMsg));
 	});
-var $elm$http$Http$BadBody = function (a) {
-	return {$: 'BadBody', a: a};
-};
-var $elm$http$Http$BadStatus = function (a) {
-	return {$: 'BadStatus', a: a};
-};
-var $elm$http$Http$BadUrl = function (a) {
-	return {$: 'BadUrl', a: a};
-};
-var $elm$http$Http$NetworkError = {$: 'NetworkError'};
-var $elm$http$Http$Timeout = {$: 'Timeout'};
 var $elm$core$Result$mapError = F2(
 	function (f, result) {
 		if (result.$ === 'Ok') {
@@ -5900,6 +5890,17 @@ var $elm$core$Result$mapError = F2(
 				f(e));
 		}
 	});
+var $elm$http$Http$BadBody = function (a) {
+	return {$: 'BadBody', a: a};
+};
+var $elm$http$Http$BadStatus = function (a) {
+	return {$: 'BadStatus', a: a};
+};
+var $elm$http$Http$BadUrl = function (a) {
+	return {$: 'BadUrl', a: a};
+};
+var $elm$http$Http$NetworkError = {$: 'NetworkError'};
+var $elm$http$Http$Timeout = {$: 'Timeout'};
 var $elm$http$Http$resolve = F2(
 	function (toResult, response) {
 		switch (response.$) {
@@ -5923,12 +5924,19 @@ var $elm$http$Http$resolve = F2(
 					toResult(body));
 		}
 	});
-var $elm$http$Http$expectString = function (toMsg) {
-	return A2(
-		$elm$http$Http$expectStringResponse,
-		toMsg,
-		$elm$http$Http$resolve($elm$core$Result$Ok));
-};
+var $elm$http$Http$expectJson = F2(
+	function (toMsg, decoder) {
+		return A2(
+			$elm$http$Http$expectStringResponse,
+			toMsg,
+			$elm$http$Http$resolve(
+				function (string) {
+					return A2(
+						$elm$core$Result$mapError,
+						$elm$json$Json$Decode$errorToString,
+						A2($elm$json$Json$Decode$decodeString, decoder, string));
+				}));
+	});
 var $elm$http$Http$emptyBody = _Http_emptyBody;
 var $elm$http$Http$Request = function (a) {
 	return {$: 'Request', a: a};
@@ -6102,13 +6110,28 @@ var $elm$http$Http$get = function (r) {
 	return $elm$http$Http$request(
 		{body: $elm$http$Http$emptyBody, expect: r.expect, headers: _List_Nil, method: 'GET', timeout: $elm$core$Maybe$Nothing, tracker: $elm$core$Maybe$Nothing, url: r.url});
 };
+var $elm$json$Json$Decode$list = _Json_decodeList;
+var $author$project$Main$Post = F3(
+	function (body, author, pubDate) {
+		return {author: author, body: body, pubDate: pubDate};
+	});
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$map3 = _Json_map3;
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $author$project$Main$postDecoder = A4(
+	$elm$json$Json$Decode$map3,
+	$author$project$Main$Post,
+	A2($elm$json$Json$Decode$field, 'body', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'author', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'pubDate', $elm$json$Json$Decode$string));
+var $author$project$Main$postListDecoder = $elm$json$Json$Decode$list($author$project$Main$postDecoder);
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
 		$author$project$Main$Loading,
 		$elm$http$Http$get(
 			{
-				expect: $elm$http$Http$expectString($author$project$Main$GotText),
-				url: 'https://elm-lang.org/assets/public-opinion.txt'
+				expect: A2($elm$http$Http$expectJson, $author$project$Main$GotText, $author$project$Main$postListDecoder),
+				url: '/posts'
 			}));
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
@@ -6116,31 +6139,38 @@ var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
 var $author$project$Main$subscriptions = function (model) {
 	return $elm$core$Platform$Sub$none;
 };
-var $author$project$Main$Failure = {$: 'Failure'};
+var $author$project$Main$Failure = function (a) {
+	return {$: 'Failure', a: a};
+};
 var $author$project$Main$Success = function (a) {
 	return {$: 'Success', a: a};
 };
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $elm$core$Debug$toString = _Debug_toString;
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		if (msg.$ === 'LoadNew') {
 			return _Utils_Tuple2(
-				$author$project$Main$Failure,
+				$author$project$Main$Loading,
 				$elm$http$Http$get(
 					{
-						expect: $elm$http$Http$expectString($author$project$Main$GotText),
-						url: 'https://elm-lang.org/assets/public-opinion.txt'
+						expect: A2($elm$http$Http$expectJson, $author$project$Main$GotText, $author$project$Main$postListDecoder),
+						url: '/posts'
 					}));
 		} else {
 			var result = msg.a;
 			if (result.$ === 'Ok') {
-				var fullText = result.a;
+				var list = result.a;
 				return _Utils_Tuple2(
-					$author$project$Main$Success(fullText),
+					$author$project$Main$Success(list),
 					$elm$core$Platform$Cmd$none);
 			} else {
-				return _Utils_Tuple2($author$project$Main$Failure, $elm$core$Platform$Cmd$none);
+				var e = result.a;
+				return _Utils_Tuple2(
+					$author$project$Main$Failure(
+						$elm$core$Debug$toString(e)),
+					$elm$core$Platform$Cmd$none);
 			}
 		}
 	});
@@ -6165,16 +6195,47 @@ var $elm$html$Html$Events$onClick = function (msg) {
 		$elm$json$Json$Decode$succeed(msg));
 };
 var $elm$html$Html$pre = _VirtualDom_node('pre');
+var $elm$html$Html$br = _VirtualDom_node('br');
+var $elm$html$Html$li = _VirtualDom_node('li');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $elm$html$Html$ul = _VirtualDom_node('ul');
+var $author$project$Main$renderList = function (lst) {
+	return A2(
+		$elm$html$Html$ul,
+		_List_Nil,
+		A2(
+			$elm$core$List$map,
+			function (s) {
+				return A2(
+					$elm$html$Html$li,
+					_List_Nil,
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$div,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text(s.body),
+									A2($elm$html$Html$br, _List_Nil, _List_Nil),
+									$elm$html$Html$text(s.author),
+									A2($elm$html$Html$br, _List_Nil, _List_Nil),
+									$elm$html$Html$text(s.pubDate)
+								]))
+						]));
+			},
+			lst));
+};
 var $author$project$Main$view = function (model) {
 	switch (model.$) {
 		case 'Failure':
-			return $elm$html$Html$text('I was unable to load your book.');
+			var e = model.a;
+			return $elm$html$Html$text(e);
 		case 'Loading':
 			return $elm$html$Html$text('Loading...');
 		default:
-			var fullText = model.a;
+			var list = model.a;
 			return A2(
 				$elm$html$Html$div,
 				_List_Nil,
@@ -6195,7 +6256,7 @@ var $author$project$Main$view = function (model) {
 						_List_Nil,
 						_List_fromArray(
 							[
-								$elm$html$Html$text(fullText)
+								$author$project$Main$renderList(list)
 							]))
 					]));
 	}
