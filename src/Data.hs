@@ -2,6 +2,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeOperators     #-}
+
 module Data where
 
 import GHC.Generics
@@ -16,6 +20,8 @@ import CMark (commonmarkToNode, Node(..), NodeType(..))
 import Data.Functor.Identity
 import qualified Data.Text as T
 
+import qualified Elm.Derive as ED
+
 import Servant.API
 
 import System.Directory (listDirectory, getModificationTime)
@@ -27,11 +33,11 @@ data Note = Note {
   pubDate :: UTCTime
 } deriving (Eq, Show, Generic)
 
-instance ToJSON Note
-instance FromJSON Note
-
 newtype HelloMessage = HelloMessage { msg :: String } deriving Generic
 instance ToJSON HelloMessage
+
+-- Automatically derive ToJSON and FromJSON
+ED.deriveBoth ED.defaultOptions ''Note
 
 getTitle :: Node -> Either String String
 getTitle node = case node of

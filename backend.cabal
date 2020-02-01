@@ -17,6 +17,7 @@ executable server
   other-modules:       Data
                      , Config
                      , NoteServer
+                     , Frontend
   -- other-extensions:    
   build-depends:       base >=4.9
                      , base-compat
@@ -37,6 +38,8 @@ executable server
                      , cmark
                      , servant
                      , servant-server
+                     , servant-elm
+                     , elm-bridge
                      , wai 
                      , warp 
   hs-source-dirs:      src
