@@ -32,17 +32,6 @@ jsonEncPost  val =
    ]
 
 
-
-type alias ResultMessage  = String
-
-jsonDecResultMessage : Json.Decode.Decoder ( ResultMessage )
-jsonDecResultMessage =
-    Json.Decode.string
-
-jsonEncResultMessage : ResultMessage -> Value
-jsonEncResultMessage  val = Json.Encode.string val
-
-
 getPosts : (Result Http.Error  ((List Post))  -> msg) -> Cmd msg
 getPosts toMsg =
     let
@@ -71,7 +60,7 @@ getPosts toMsg =
                 Nothing
             }
 
-postPosts : Post -> (Result Http.Error  (ResultMessage)  -> msg) -> Cmd msg
+postPosts : Post -> (Result Http.Error  (HelloMessage)  -> msg) -> Cmd msg
 postPosts body toMsg =
     let
         params =
@@ -92,7 +81,7 @@ postPosts body toMsg =
             , body =
                 Http.jsonBody (jsonEncPost body)
             , expect =
-                Http.expectJson toMsg jsonDecResultMessage
+                Http.expectJson toMsg jsonDecHelloMessage
             , timeout =
                 Nothing
             , tracker =
