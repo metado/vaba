@@ -11,8 +11,6 @@ import Html.Events exposing (onClick)
 import Json.Decode exposing (Decoder, field, string, int)
 import Http
 
--- import Json.Decode as JD exposing (field, Decoder, int, string)
-
 type alias Post  =
    { body: String
    , author: String
@@ -63,9 +61,6 @@ init _ =
 -- UPDATE
 
 type Msg = GotText (Result Http.Error (List Post)) | LoadNew
-
---fromPosts : List Post -> Msg
---fromPosts posts = GotText (Ok posts)
 
 type SuperString = Super String
 
