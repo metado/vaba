@@ -19,6 +19,7 @@ executable server
                      , Frontend
                      , Client
                      , Database
+                     , Repl
                      , Api.Server
                      , Api.Feed
                      , Api.PostApi
