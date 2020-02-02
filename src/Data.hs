@@ -36,20 +36,66 @@ newtype ResultMessage = ResultMessage { msg :: String } deriving Generic
 ED.deriveBoth ED.defaultOptions ''Post
 ED.deriveBoth ED.defaultOptions ''ResultMessage
 
-data Message = TextMessage UTCTime String | FriendshipRequest UTCTime
+class WithId a where
+  getId :: a -> Int
+  getTime :: a -> UTCTime
 
-data MessageType = Text | Friendship
+data TextMessage = TextMessage { 
+  messageId :: Int
+, messageBody :: String
+, messageTime :: UTCTime
+} deriving (Show, Eq)
 
-instance FromField MessageType where
-  fromField (Field (SQLText "TextMessage") _) = Ok Text
-  fromField (Field (SQLText "FriendshipRequest") _) = Ok Friendship
+instance FromRow TextMessage where
+  fromRow = TextMessage <$> field <*> field <*> field
+
+instance ToRow TextMessage where
+  toRow TextMessage{..} = toRow (messageId, messageBody, messageTime)
+
+instance WithId TextMessage where
+  getId = messageId
+  getTime = messageTime
 
 
-instance FromRow Message where
-  fromRow = undefined
+data FriendshipRequest = FriendshipRequest {
+  requestId :: Int
+, requester :: String
+, addressee :: String
+, requestTime :: UTCTime
+} deriving (Show, Eq)
+
+instance FromRow FriendshipRequest where
+  fromRow = FriendshipRequest <$> field <*> field <*> field <*> field
+
+instance ToRow FriendshipRequest where
+  toRow FriendshipRequest{..} = toRow (requestId, requester, addressee, requestTime)
+
+instance WithId FriendshipRequest where
+  getId = requestId
+  getTime = requestTime
 
 
-messageType :: RowParser String
-messageType = undefined
+data Message = Friendship FriendshipRequest | Text TextMessage deriving (Show, Eq)
 
+instance WithId Message where
+  getId (Friendship r) = getId r
+  getId (Text m) = getId m
+
+  getTime (Friendship r) = getTime r
+  getTime (Text m) = getTime m
+
+instance Ord Message where
+  compare a b = (getTime a) `compare` (getTime b)
+
+data Actor = Actor {
+    actorId :: Int
+  , actorName :: String
+  , actorAddress :: String
+} deriving (Eq, Show)
+
+instance FromRow Actor where
+  fromRow = Actor <$> field <*> field <*> field
+
+instance ToRow Actor where
+  toRow Actor{..} = toRow (actorId, actorName, actorAddress)
 
