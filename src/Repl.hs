@@ -19,7 +19,7 @@ parse withArg = case (words withArg) of
   _ -> Left $ withArg ++ " is an unkown command"
 
 process :: Config -> Command -> IO ()
-process config ShowFeed = (Client.feed config) >>= print
+process config ShowFeed = DB.listActors config >>= Client.feed >>= print
 process config (AddPost body) = fmap (\t -> Data.Post body "me" t) getCurrentTime >>= DB.addPost config
 process config GetPosts = (DB.getPosts config) >>= print
 process config ReadInbox = (DB.readInbox config) >>= print
