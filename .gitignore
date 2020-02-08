@@ -1,2 +1,5 @@
 dist-newstyle/
 .DS_Store
+elm-stuff/*
+.gitconfig
+static/js/*

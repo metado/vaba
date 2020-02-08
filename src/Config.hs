@@ -21,7 +21,7 @@ loadConfig path = input auto $ T.pack path
 defaultConfig :: Config
 defaultConfig = Config { 
   notesDir = "./notes/"
-, staticDir = "./elm-src/"
+, staticDir = "./static/"
 , dbPath = "test.db"
 , friends = []
 }

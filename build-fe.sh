@@ -1,0 +1,1 @@
+elm make elm-src/Main.elm --output="static/js/app.js"
