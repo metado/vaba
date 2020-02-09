@@ -5,11 +5,14 @@
 --
 module Main exposing (..)
 
+
 import Browser
-import Html exposing (Html, text, pre, div, button, li, ul, br)
+import Html exposing (Html, label, text, pre, div, button, li, ul, h1, input, br)
+import Html.Attributes exposing (style, type_)
 import Html.Events exposing (onClick)
 import Json.Decode exposing (Decoder, field, string, int)
-import Http
+import Json.Encode exposing (..)
+import Http exposing (..)
 
 type alias Post  =
    { body: String
@@ -20,9 +23,9 @@ type alias Post  =
 postDecoder : Decoder Post
 postDecoder =
   Json.Decode.map3 Post
-    (field "body" string)
-    (field "author" string)
-    (field "pubDate" string)
+    (field "body" Json.Decode.string)
+    (field "author" Json.Decode.string)
+    (field "pubDate" Json.Decode.string)
 
 
 postListDecoder : Decoder (List Post)
@@ -47,7 +50,6 @@ type Model
   | Loading
   | Success (List Post)
 
-
 init : () -> (Model, Cmd (Msg))
 init _ =
   ( Loading
@@ -60,7 +62,7 @@ init _ =
 
 -- UPDATE
 
-type Msg = GotText (Result Http.Error (List Post)) | LoadNew
+type Msg = GotText (Result Http.Error (List Post)) | LoadNew | PostForm | Posted (Result Http.Error ())
 
 type SuperString = Super String
 
@@ -69,12 +71,40 @@ type SuperString = Super String
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
+    Posted _ ->
+        (Loading, 
+            Http.get
+            {
+                url = "/feed",
+                expect = Http.expectJson GotText postListDecoder
+            }
+        )
     LoadNew ->
         (Loading, 
             Http.get
             {
                 url = "/feed",
                 expect = Http.expectJson GotText postListDecoder
+            }
+        )
+    PostForm ->
+        (Loading,
+            Http.post
+            {
+                url = "/posts",
+      {-           body = Http.Body {
+                    body = "Hello world 2",
+                    author = "chuwy 2",
+                    pubDate = "2020-02-01T12:58:36.884891Z"
+                }, -}
+                body = Json.Encode.object
+                    [
+                      ( "body", Json.Encode.string "Hello world 2" )
+                      , ( "author", Json.Encode.string "chuwy 2" )
+                      , ( "pubDate", Json.Encode.string "2020-02-01T12:58:36.884891Z" )
+                    ]
+                    |> Http.jsonBody,
+                expect = Http.expectWhatever Posted
             }
         )
     GotText result ->
@@ -87,7 +117,7 @@ update msg model =
 
 noteDecoder : Decoder String
 noteDecoder =
-   (field "body" string)
+   (field "body" Json.Decode.string)
 
 -- SUBSCRIPTIONS
 
@@ -103,8 +133,17 @@ headIsu posts = case (List.head posts) of
   Just p -> p
 
 renderList : List Post -> Html Msg
-renderList lst =  ul [] (List.map(\s -> li [] [ div [] [text s.body, br[][], (text s.author),br[][], (text s.pubDate) ]]) lst)
---renderList lst =  div [] [ text (String.fromInt (List.length lst)) ]
+renderList lst =  ul [] (List.map(\s -> 
+  li [] [ div [] [text s.body, br[][], (text s.author), br[][], (text s.pubDate) ]]) lst)
+
+pst : Html Msg
+pst = div
+  [ style "max-width" "400px", style "background-color" "#F00" ] 
+  [ h1 [] [text "Post Form"],
+    label [][text "post here"],
+    input [type_ "text"] [],
+    button [type_ "submit", onClick LoadNew ][ text "submit" ]
+  ]
 
 view : Model -> Html Msg
 view model =
@@ -116,6 +155,12 @@ view model =
       text "Loading..."
 
     Success list ->
+  -- [
       div [] [ 
           button [ onClick LoadNew ] [ text "Load New!!" ],
-          pre [] [ renderList list ]] 
+          button [ onClick PostForm ][ text "submit" ],
+          pre [] [ renderList list ],
+          pst
+          ] 
+      
+--  ]
