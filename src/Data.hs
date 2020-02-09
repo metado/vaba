@@ -87,15 +87,27 @@ instance WithId Message where
 instance Ord Message where
   compare a b = (getTime a) `compare` (getTime b)
 
+type URL = String
+
 data Actor = Actor {
-    actorId :: Int
+    actorId :: Int          -- ^ Required by ActivityStreams
+  , actorType :: String     -- ^ Required by ActivityStreams
+
   , actorName :: String
   , actorAddress :: String
+
+  -- Required by ActivityPub
+  , actorInbox :: URL
+  , actorOutbox :: URL
+  -- Recommended by ActivityPub
+  , actorFollowing :: URL
+  , actorFollowers :: URL
+  , actorStreams :: URL     -- TODO: [URL]
 } deriving (Eq, Show)
 
 instance FromRow Actor where
-  fromRow = Actor <$> field <*> field <*> field
+  fromRow = Actor <$> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field
 
 instance ToRow Actor where
-  toRow Actor{..} = toRow (actorId, actorName, actorAddress)
+  toRow Actor{..} = toRow (actorId, actorType, actorName, actorAddress)
 
