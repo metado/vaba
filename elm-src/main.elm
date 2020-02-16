@@ -8,11 +8,14 @@ module Main exposing (..)
 
 import Browser
 import Html exposing (Html, label, text, pre, div, button, li, ul, h1, input, br)
-import Html.Attributes exposing (style, type_)
-import Html.Events exposing (onClick)
+import Html.Attributes exposing (style, type_, disabled)
+import Html.Events exposing (onClick, onInput)
 import Json.Decode exposing (Decoder, field, string, int)
 import Json.Encode exposing (..)
 import Http exposing (..)
+import Time exposing (..)
+import Task exposing (..)
+import Iso8601 exposing (..)
 
 type alias Post  =
    { body: String
@@ -46,13 +49,13 @@ main =
 -- MODEL
 
 type Model
-  = Failure String
-  | Loading
-  | Success (List Post)
+  = Failure (List Post) String
+  | Loading (List Post) String
+  | Success (List Post) String
 
 init : () -> (Model, Cmd (Msg))
 init _ =
-  ( Loading
+  ( Loading [] ""
   , Http.get
         {
             url = "/feed",
@@ -60,19 +63,45 @@ init _ =
         }
   )
 
+getTime : Cmd Msg
+getTime = 
+    Task.perform OnTime Time.now 
+
 -- UPDATE
 
-type Msg = GotText (Result Http.Error (List Post)) | LoadNew | PostForm | Posted (Result Http.Error ())
+type Msg = GotText (Result Http.Error (List Post))
+  | LoadNew
+  | UpdateTime
+  | PostForm
+  | UpdateForm String
+  | Posted (Result Http.Error ())
+  | OnTime Time.Posix 
 
 type SuperString = Super String
 
+destructModelToList : Model -> List Post
+destructModelToList model =
+  case model of
+    Failure s _ -> s
+    Loading s _ -> s
+    Success s _ -> s
+  
+destructModelToMessage : Model -> String
+destructModelToMessage model =
+  case model of
+    Failure _ s -> s
+    Loading _ s -> s
+    Success _ s -> s
 
--- expectJson : (Result Error a -> msg) -> Decoder a -> Expect msg
+toUtcString : Time.Posix -> String
+toUtcString time =
+  String.fromInt (toHour utc time)
+
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     Posted _ ->
-        (Loading, 
+        ( Loading (destructModelToList model) "", 
             Http.get
             {
                 url = "/feed",
@@ -80,39 +109,52 @@ update msg model =
             }
         )
     LoadNew ->
-        (Loading, 
+        (Loading (destructModelToList model) "", 
             Http.get
             {
                 url = "/feed",
                 expect = Http.expectJson GotText postListDecoder
             }
         )
-    PostForm ->
-        (Loading,
+    PostForm  ->
+        (Loading (destructModelToList model) "",
             Http.post
             {
                 url = "/posts",
-      {-           body = Http.Body {
-                    body = "Hello world 2",
-                    author = "chuwy 2",
-                    pubDate = "2020-02-01T12:58:36.884891Z"
-                }, -}
                 body = Json.Encode.object
                     [
-                      ( "body", Json.Encode.string "Hello world 2" )
+                      ( "body", Json.Encode.string (destructModelToMessage model))
                       , ( "author", Json.Encode.string "chuwy 2" )
-                      , ( "pubDate", Json.Encode.string "2020-02-01T12:58:36.884891Z" )
+                      , ( "pubDate", Json.Encode.string "dd" )
                     ]
                     |> Http.jsonBody,
                 expect = Http.expectWhatever Posted
             }
         )
+    OnTime time -> (Loading (destructModelToList model) "",
+            Http.post
+            {
+                url = "/posts",
+                body = Json.Encode.object
+                    [
+                      ( "body", Json.Encode.string (destructModelToMessage model))
+                      , ( "author", Json.Encode.string "chuwy 2" )
+                      , ( "pubDate", Json.Encode.string (fromTime time))
+                    ]
+                    |> Http.jsonBody,
+                expect = Http.expectWhatever Posted
+            }
+        )
+    UpdateTime -> 
+        (Success (destructModelToList model) (destructModelToMessage model), getTime)
+    UpdateForm message -> 
+        (Success (destructModelToList model) message, Cmd.none)
     GotText result ->
       case result of
         Ok list ->
-          (Success list, Cmd.none)
+          (Success list "", Cmd.none)
         Err e ->
-          (Failure (Debug.toString e), Cmd.none)
+          (Failure [] (Debug.toString e), Cmd.none)
 
 
 noteDecoder : Decoder String
@@ -136,31 +178,35 @@ renderList : List Post -> Html Msg
 renderList lst =  ul [] (List.map(\s -> 
   li [] [ div [] [text s.body, br[][], (text s.author), br[][], (text s.pubDate) ]]) lst)
 
-pst : Html Msg
-pst = div
-  [ style "max-width" "400px", style "background-color" "#F00" ] 
+updateFormAction : String -> Msg
+updateFormAction message = UpdateForm message 
+
+
+
+pst : Model -> Html Msg
+pst model = div
+  [ style "max-width" "400px", style "background-color" "#A05555", style "height" "150px", style "margin" "10px", style "padding" "10px" ] 
   [ h1 [] [text "Post Form"],
-    label [][text "post here"],
-    input [type_ "text"] [],
-    button [type_ "submit", onClick LoadNew ][ text "submit" ]
+    label [][text "Message: "],
+    input [type_ "text", onInput updateFormAction ] [],
+    br [] [],
+    br [] [],
+    button [type_ "submit", disabled (String.isEmpty (destructModelToMessage model)), onClick UpdateTime ][ text "submit" ]
   ]
 
 view : Model -> Html Msg
 view model =
   case model of
-    Failure e ->
+    Failure _ e ->
       text e
 
-    Loading ->
+    Loading _ _->
       text "Loading..."
 
-    Success list ->
-  -- [
-      div [] [ 
-          button [ onClick LoadNew ] [ text "Load New!!" ],
-          button [ onClick PostForm ][ text "submit" ],
-          pre [] [ renderList list ],
-          pst
+    Success list _  ->
+      div [style "display" "flex"] [
+          div [] [pre [] [
+              button [ onClick LoadNew ] [ text "Load New!!" ],
+             renderList list ]],
+          pst model
           ] 
-      
---  ]
