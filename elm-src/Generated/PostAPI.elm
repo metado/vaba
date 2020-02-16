@@ -31,8 +31,6 @@ jsonEncPost  val =
    , ("pubDate", jsonEncPosix val.pubDate)
    ]
 
-
-
 type alias ResultMessage  = String
 
 jsonDecResultMessage : Json.Decode.Decoder ( ResultMessage )

@@ -18,6 +18,6 @@ loadConfig path = input auto $ T.pack path
 
 defaultConfig :: Config
 defaultConfig = Config { 
-  staticDir = "./elm-src/"
+  staticDir = "./static/"
 , dbPath = "test.db"
 }
