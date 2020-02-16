@@ -17,10 +17,23 @@ import qualified Database as DB
 import           Config
 import           Api.Feed
 
+data PublicKey = PublicKey {
+  keyId :: String
+, keyOwner :: String
+, publicKeyPem :: String            -- TODO: Use http://hackage.haskell.org/package/cryptonite-0.26/docs/Crypto-PubKey-RSA.html
+} deriving (Eq, Show, Generic)
+
+data Actor = Actor {
+  actorId :: String
+, actorType :: String
+, preferredUserName :: String
+, inbox :: String
+, publicKey :: PublicKey
+} deriving (Eq, Show, Generic)
+
 newtype ActorAddress = ActorAddress { 
   getAddress :: String 
 } deriving (Eq, Show, Generic, IsString)
-
 
 -- ^ https://www.w3.org/ns/activitystreams#Object
 data ObjectMeta = ObjectMeta {

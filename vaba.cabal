@@ -25,6 +25,7 @@ executable vaba
                      , Api.PostApi
                      , Api.Inbox
                      , Api.Outbox
+                     , Api.WebFinger
   -- other-extensions:    
   build-depends:       base >=4.9
                      , base-compat

@@ -33,4 +33,4 @@ parse :: Lazy.ByteString -> Maybe [Post]
 parse str = decode str
 
 makeRequest :: String -> IO Request
-makeRequest ip = parseRequest $ "http://" ++ ip ++ ":8081/posts"
+makeRequest ip = parseRequest $ "http://" ++ ip ++ "/posts"

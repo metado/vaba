@@ -46,6 +46,6 @@ addActor config actor = do
 listActors :: Config -> IO [D.Actor]
 listActors config = do
   conn <- open $ dbPath config
-  r <- query_ conn "SELECT id, name, address FROM actors" :: IO [D.Actor]
+  r <- query_ conn "SELECT id, type, name, address, inbox, outbox, following, followers, streams FROM actors" :: IO [D.Actor]
   close conn
   return r

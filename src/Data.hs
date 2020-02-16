@@ -109,5 +109,5 @@ instance FromRow Actor where
   fromRow = Actor <$> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field
 
 instance ToRow Actor where
-  toRow Actor{..} = toRow (actorId, actorType, actorName, actorAddress)
+  toRow Actor{..} = toRow (actorId, actorType, actorName, actorAddress, actorInbox, actorOutbox, actorFollowing, actorFollowers, actorStreams)
 

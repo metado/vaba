@@ -30,6 +30,6 @@ main = do
     let configPath = getConfigPath command 
     config <- Config.loadConfig configPath
     case command of
-      Server _ -> (app config) >>= \a -> run 8081 a
+      Server _ -> putStrLn "Running vaba server..." >> (app config) >>= \a -> run 8081 a
       Repl _ -> putStrLn "Welcome to the Vaba REPL!" >> forever (repl config)
     
