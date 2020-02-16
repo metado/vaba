@@ -3,7 +3,6 @@
 
 module Api.Server (app) where
 
-import           Control.Monad.Except
 import           Servant
 
 import qualified Data       as D

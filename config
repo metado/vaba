@@ -1,6 +1,5 @@
-{ notesDir = "./notes/" 
-, staticDir = "./static/"
+{ staticDir = "./static/"
 , dbPath = "test.db"
 --, friends = ["192.169.0.33", "192.168.0.36", "192.168.0.12"] : List Text
-, friends = ["192.168.0.12"] : List Text
+--, friends = ["192.168.0.12"] : List Text
 }

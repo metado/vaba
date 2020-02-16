@@ -12,16 +12,19 @@ build-type:          Simple
 extra-source-files:  CHANGELOG.md
 cabal-version:       >=1.10
 
-executable server
+executable vaba
   main-is:             Main.hs
   other-modules:       Data
                      , Config
                      , Frontend
                      , Client
                      , Database
+                     , Repl
                      , Api.Server
                      , Api.Feed
                      , Api.PostApi
+                     , Api.Inbox
+                     , Api.Outbox
   -- other-extensions:    
   build-depends:       base >=4.9
                      , base-compat
@@ -50,5 +53,4 @@ executable server
                      , sqlite-simple
                      , aeson
  hs-source-dirs:       src
-  default-language:    Haskell2010
-
+ default-language:     Haskell2010

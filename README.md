@@ -2,7 +2,7 @@
 
 ## Endpoints
 
-### Client/UI-facing endpoints
+### Client/UI-facing endpointsfe
 
 - `GET /api/feed` - returns all posts from your node and friend-nodes, e.g. `[{"author": "alice@alice.me", "body": "Hello, world"}]`
 - `POST /api/feed` - creates a new post
@@ -14,3 +14,5 @@
 ## Front-end
 
 - To build client-side run `sh build-fe.sh`
+
+Twitter-killer.
