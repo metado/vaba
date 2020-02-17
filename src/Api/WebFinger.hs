@@ -8,7 +8,7 @@ module Api.WebFinger where
 
 import           Data.Aeson
 import           Data.Aeson.Types
-import qualified Elm.Derive                     as ED
+import           Data.Aeson.TH as ATH
 import           GHC.Generics hiding (Meta)
 import           Control.Monad.Except
 import           Servant hiding (Link)
@@ -18,13 +18,23 @@ import qualified Data.Text as T
 
 import           Config
 
-data Link = Link {
-  rel :: String
-, linkType :: String
-, href :: String
-} deriving (Eq, Show, Generic)
+type URL = String
 
-ED.deriveBoth ED.defaultOptions ''Link
+profilePage :: T.Text
+profilePage = "http://webfinger.net/rel/profile-page"
+
+data Rel = ProfilePage String URL | Self String URL deriving (Eq, Show, Generic)
+
+instance ToJSON Rel where
+  toJSON (ProfilePage t u) = 
+    object ["rel" .= profilePage, "type" .= t, "href" .= u]
+  toJSON (Self t u) =
+    object ["rel" .= self, "type" .= t, "href" .= u]
+    where self :: T.Text
+          self = "self"
+
+instance FromJSON Rel where
+  parseJSON = undefined
 
 type WebFingerAPI = ".well-known" :> "webfinger" :> QueryParam "resource" Account :> Get '[JSON] [Fingerprint]
 
@@ -79,8 +89,8 @@ instance FromHttpApiData Account where
 
 data Fingerprint = Fingerprint {
   subject :: Account
-, links :: [Link]
+, links :: [Rel]
 } deriving (Eq, Show, Generic)
 
-ED.deriveBoth ED.defaultOptions ''Fingerprint
+ATH.deriveJSON ATH.defaultOptions ''Fingerprint
 
