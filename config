@@ -1,3 +1,6 @@
 { staticDir = "./static/"
 , dbPath = "test.db"
+, name = "chuwy"
+, host = "localhost"
+, port = 8081
 }

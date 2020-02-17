@@ -8,6 +8,9 @@ import           Dhall
 data Config = Config { 
   staticDir :: FilePath
 , dbPath :: FilePath 
+, name :: String
+, host :: String
+, port :: Natural
 } deriving (Generic, Show)
 
 instance FromDhall Config
@@ -20,4 +23,7 @@ defaultConfig :: Config
 defaultConfig = Config { 
   staticDir = "./static/"
 , dbPath = "test.db"
+, name = "bob"
+, host = "localhost"
+, port = 8081
 }

@@ -4,6 +4,7 @@
 
 module Main where
 
+import           GHC.Natural (naturalToInt)
 import           Control.Monad
 import           System.Environment (getArgs)
 import           Network.Wai.Handler.Warp (run)
@@ -30,6 +31,6 @@ main = do
     let configPath = getConfigPath command 
     config <- Config.loadConfig configPath
     case command of
-      Server _ -> putStrLn "Running vaba server..." >> (app config) >>= \a -> run 8081 a
+      Server _ -> putStrLn "Running vaba server..." >> (app config) >>= run (naturalToInt $ Config.port config)
       Repl _ -> putStrLn "Welcome to the Vaba REPL!" >> forever (repl config)
     

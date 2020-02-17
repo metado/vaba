@@ -4,7 +4,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Api.WebFinger where
+module Api.WebFinger (WebFingerAPI, webFingerAPI, webFinger) where
 
 import           Data.Aeson
 import           Data.Aeson.Types
@@ -36,17 +36,20 @@ instance ToJSON Rel where
 instance FromJSON Rel where
   parseJSON = undefined
 
-type WebFingerAPI = ".well-known" :> "webfinger" :> QueryParam "resource" Account :> Get '[JSON] [Fingerprint]
-
-example = Fingerprint { subject = Account "anton" "chuwy.me", links = [] }
+type WebFingerAPI = ".well-known" :> "webfinger" :> QueryParam "resource" Account :> Get '[JSON] Fingerprint
 
 webFingerAPI :: Proxy WebFingerAPI
 webFingerAPI = Proxy
 
 webFinger :: Config -> Server WebFingerAPI
-webFinger config resource = getPosts
-  where getPosts :: Handler [Fingerprint]
-        getPosts = liftIO $ [example] <$ (putStrLn $ "requesting " ++ show config)
+webFinger config account = getPosts
+  where getPosts :: Handler Fingerprint
+        getPosts = liftIO $ getOwnFiger config <$ (putStrLn $ "requesting " ++ show account)
+
+getOwnFiger :: Config -> Fingerprint
+getOwnFiger config = Fingerprint { subject = Account (name config) socket, links = [rel] } 
+  where socket = (host config) ++ ":" ++ show (port config)
+        rel = Self "application/activity+json" $ "https://" ++ socket ++ "/users/" ++ name config
 
 readAccount :: String -> Either String Account
 readAccount s = case wordsWhen (== '@') s of
@@ -64,12 +67,12 @@ wordsWhen p s = case dropWhile p s of
 
 
 data Account = Account { 
-  name :: String
-, domain :: String
+  accountName :: String
+, accountDomain :: String
 } deriving (Eq)
 
 instance Show Account where
-  show Account { name=n, domain=d } = "acct:" ++ n ++ "@" ++ d
+  show Account { accountName=n, accountDomain=d } = "acct:" ++ n ++ "@" ++ d
   
 instance FromJSON Account where
   parseJSON (String s) = case (readAccount $ T.unpack s) of
