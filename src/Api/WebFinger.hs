@@ -42,12 +42,15 @@ webFingerAPI :: Proxy WebFingerAPI
 webFingerAPI = Proxy
 
 webFinger :: Config -> Server WebFingerAPI
-webFinger config account = getPosts
+webFinger config (Just account) = response
   where getPosts :: Handler Fingerprint
-        getPosts = liftIO $ getOwnFiger config <$ (putStrLn $ "requesting " ++ show account)
+        getPosts = liftIO $ getOwnFinger config <$ (putStrLn $ "requesting " ++ show account)
+        response = if matching then getPosts else throwError err404
+        matching = subject (getOwnFinger config) == account
+webFinger _ Nothing = throwError err404
 
-getOwnFiger :: Config -> Fingerprint
-getOwnFiger config = Fingerprint { subject = Account (name config) socket, links = [rel] } 
+getOwnFinger :: Config -> Fingerprint
+getOwnFinger config = Fingerprint { subject = Account (name config) socket, links = [rel] } 
   where socket = (host config) ++ ":" ++ show (port config)
         rel = Self "application/activity+json" $ "https://" ++ socket ++ "/users/" ++ name config
 
@@ -79,6 +82,7 @@ instance FromJSON Account where
     Right acc -> pure acc
     Left err -> prependFailure "parsing Coord failed, " (typeMismatch "Object" (String s))
   parseJSON invalid = prependFailure "parsing Account failed, " (typeMismatch "String" invalid)
+
 
 instance ToJSON Account where
   toJSON = strJson . show
