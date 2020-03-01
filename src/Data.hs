@@ -121,12 +121,12 @@ instance ToRow Actor where
 
 -- | A full account id that can be looked up on the server
 data Account = Account { 
-  accountName :: String     -- ^ Name, e.g. "chuwy" in "acct:chuwy@vaba.es"
+  accountName :: T.Text     -- ^ Name, e.g. "chuwy" in "acct:chuwy@vaba.es"
 , accountDomain :: String   -- ^ Domain, e.g. "chuwy" in "acct:chuwy@vaba.es"
 } deriving (Eq)
 
 instance Show Account where
-  show Account { accountName=n, accountDomain=d } = "acct:" ++ n ++ "@" ++ d
+  show Account { accountName=n, accountDomain=d } = "acct:" ++ T.unpack n ++ "@" ++ d
   
 instance FromJSON Account where
   parseJSON (String s) = case (readAccount $ T.unpack s) of
@@ -147,7 +147,7 @@ instance FromHttpApiData Account where
 readAccount :: String -> Either String Account
 readAccount s = case wordsWhen (== '@') s of
   prefix : domain : [] -> case (stripPrefix acct prefix) of
-    Just name -> Right $ Account name domain
+    Just name -> Right $ Account (T.pack name) domain
     Nothing -> Left "Missing acct: prefix"
   _ -> Left "Expected acct:prefix@domain format"
   where acct = "acct:"
@@ -162,7 +162,7 @@ ownAccount config = Account (name config) socket
   where socket = (host config) ++ ":" ++ show (port config)
 
 accountUrl :: Account -> T.Text
-accountUrl account = T.pack $ "https://" ++ accountDomain account ++ "/users/" ++ accountName account
+accountUrl account = T.pack $ "https://" ++ accountDomain account ++ "/users/" ++ T.unpack (accountName account)
 
 inboxUrl :: Account -> T.Text
-inboxUrl account = T.pack $ "https://" ++ accountDomain account ++ "/users/" ++ accountName account ++ "/inbox"
+inboxUrl account = T.pack $ "https://" ++ accountDomain account ++ "/users/" ++ T.unpack (accountName account) ++ "/inbox"

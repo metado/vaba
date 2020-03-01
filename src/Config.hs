@@ -4,11 +4,12 @@ module Config (Config(..), loadConfig, defaultConfig) where
 
 import qualified Data.Text as T
 import           Dhall
+import qualified Text.URI as U
 
 data Config = Config { 
   staticDir :: FilePath
 , dbPath :: FilePath 
-, name :: String
+, name :: T.Text
 , host :: String
 , port :: Natural
 } deriving (Generic, Show)
@@ -23,7 +24,7 @@ defaultConfig :: Config
 defaultConfig = Config { 
   staticDir = "./static/"
 , dbPath = "test.db"
-, name = "bob"
+, name = T.pack "bob"
 , host = "localhost"
 , port = 8081
 }

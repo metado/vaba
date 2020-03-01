@@ -43,7 +43,7 @@ buildActor config = pure actor
   where actor = Actor id "Person" preferredName inbox key
         key = PublicKey "main-key" id pem
         id = (accountUrl . ownAccount) config
-        preferredName = pack $ name config
+        preferredName = name config
         inbox = (inboxUrl . ownAccount) config
 
 type ActorAPI = "users" :> Capture "userName" Text :> Get '[JSON] Actor
@@ -55,5 +55,5 @@ actor :: Config -> Server ActorAPI
 actor config = actorHandler
   where actorHandler :: Text -> Handler Actor
         actorHandler userName = if (matching userName) then liftIO $ buildActor config else throwError err404
-        matching name = ownAccount config == Account ((accountDomain . ownAccount) config) (unpack name)
+        matching name = ownAccount config == Account name ((accountDomain . ownAccount) config)
 

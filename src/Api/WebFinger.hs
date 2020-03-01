@@ -3,33 +3,37 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Api.WebFinger (WebFingerAPI, webFinger) where
 
 import           Control.Monad.Except
+import           Control.Lens.Setter (set)
+import           Control.Lens.Type
 import           Data.Aeson
 import           Data.Aeson.Types
 import           Data.Aeson.TH as ATH
 import           Data.String
 import qualified Data.Text as T
 import           GHC.Generics hiding (Meta)
-import           Servant hiding (Link)
+import           Servant hiding (Link, URI, uriScheme)
+import           Text.URI hiding (QueryParam)
+import qualified Text.URI.Lens as UL
+import qualified Text.URI.QQ as UQ
 
 import           Config
 import           Data (Account(..), ownAccount)
 
-type URL = String
-
 profilePage :: T.Text
 profilePage = "http://webfinger.net/rel/profile-page"
 
-data Rel = ProfilePage String URL | Self String URL deriving (Eq, Show, Generic)
+data Rel = ProfilePage String URI | Self String URI deriving (Eq, Show, Generic)
 
 instance ToJSON Rel where
   toJSON (ProfilePage t u) = 
-    object ["rel" .= profilePage, "type" .= t, "href" .= u]
+    object ["rel" .= profilePage, "type" .= t, "href" .= (renderStr u)]
   toJSON (Self t u) =
-    object ["rel" .= self, "type" .= t, "href" .= u]
+    object ["rel" .= self, "type" .= t, "href" .= (renderStr u)]
     where self :: T.Text
           self = "self"
 
@@ -52,7 +56,9 @@ webFinger _ Nothing = throwError err404
 getOwnFinger :: Config -> Fingerprint
 getOwnFinger config = Fingerprint { subject = ownAccount config, links = [rel] } 
   where socket = (host config) ++ ":" ++ show (port config)
-        rel = Self "application/activity+json" $ "https://" ++ socket ++ "/users/" ++ name config
+        rel2 = set UL.uriScheme https emptyURI
+        https = Just [UQ.scheme|https|]
+        rel = Self "application/activity+json" $ undefined
 
 
 data Fingerprint = Fingerprint {

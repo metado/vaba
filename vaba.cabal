@@ -20,6 +20,7 @@ library
                      , Client
                      , Database
                      , Repl
+                     , Instances
                      , Api.Server
                      , Api.Feed
                      , Api.PostApi
@@ -37,6 +38,7 @@ library
                      , directory
                      , bytestring
                      , mtl
+                     , lens
                      , attoparsec
                      , http-media
                      , blaze-markup
@@ -44,6 +46,7 @@ library
                      , lucid
                      , dhall
                      , cmark
+                     , modern-uri
                      , servant
                      , servant-server
                      , servant-elm
