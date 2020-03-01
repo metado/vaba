@@ -4,19 +4,19 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Api.WebFinger (WebFingerAPI, webFingerAPI, webFinger) where
+module Api.WebFinger (WebFingerAPI, webFinger) where
 
+import           Control.Monad.Except
 import           Data.Aeson
 import           Data.Aeson.Types
 import           Data.Aeson.TH as ATH
-import           GHC.Generics hiding (Meta)
-import           Control.Monad.Except
-import           Servant hiding (Link)
 import           Data.String
-import           Data.List (stripPrefix)
 import qualified Data.Text as T
+import           GHC.Generics hiding (Meta)
+import           Servant hiding (Link)
 
 import           Config
+import           Data (Account(..), ownAccount)
 
 type URL = String
 
@@ -50,49 +50,9 @@ webFinger config (Just account) = response
 webFinger _ Nothing = throwError err404
 
 getOwnFinger :: Config -> Fingerprint
-getOwnFinger config = Fingerprint { subject = Account (name config) socket, links = [rel] } 
+getOwnFinger config = Fingerprint { subject = ownAccount config, links = [rel] } 
   where socket = (host config) ++ ":" ++ show (port config)
         rel = Self "application/activity+json" $ "https://" ++ socket ++ "/users/" ++ name config
-
-readAccount :: String -> Either String Account
-readAccount s = case wordsWhen (== '@') s of
-  prefix : domain : [] -> case (stripPrefix acct prefix) of
-    Just name -> Right $ Account name domain
-    Nothing -> Left "Missing acct: prefix"
-  _ -> Left "Expected acct:prefix@domain format"
-  where acct = "acct:"
-
-wordsWhen :: (Char -> Bool) -> String -> [String]
-wordsWhen p s = case dropWhile p s of
-                     "" -> []
-                     s' -> w : wordsWhen p s''
-                           where (w, s'') = break p s'
-
-
--- | A full account id that can be looked up on the server
-data Account = Account { 
-  accountName :: String     -- ^ Name, e.g. "chuwy" in "acct:chuwy@vaba.es"
-, accountDomain :: String   -- ^ Domain, e.g. "chuwy" in "acct:chuwy@vaba.es"
-} deriving (Eq)
-
-instance Show Account where
-  show Account { accountName=n, accountDomain=d } = "acct:" ++ n ++ "@" ++ d
-  
-instance FromJSON Account where
-  parseJSON (String s) = case (readAccount $ T.unpack s) of
-    Right acc -> pure acc
-    Left err -> prependFailure "parsing Account failed, " (typeMismatch "Object" (String s))
-  parseJSON invalid = prependFailure "parsing Account failed, " (typeMismatch "String" invalid)
-
-
-instance ToJSON Account where
-  toJSON = strJson . show
-    where strJson = toJSON
-
-instance FromHttpApiData Account where
-  parseQueryParam s = case (readAccount $ T.unpack s) of
-    Left e -> Left $ T.pack e
-    Right a -> Right a
 
 
 data Fingerprint = Fingerprint {

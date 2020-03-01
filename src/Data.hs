@@ -6,6 +6,10 @@
 
 module Data where
 
+import           Data.Aeson
+import           Data.Aeson.Types
+import           Data.List (stripPrefix)
+import qualified Data.Text as T
 import           Data.Time (UTCTime)
 import           Database.SQLite.Simple.Internal
 import           Database.SQLite.Simple
@@ -16,7 +20,9 @@ import           Database.SQLite.Simple.FromField
 import qualified Elm.Derive                     as ED
 import           GHC.Generics
 import           Servant.API                    hiding (Post)
+import qualified Elm.Derive                     as ED
 
+import           Config (Config(..))
 
 data Post = Post {
   body :: String,
@@ -111,3 +117,52 @@ instance FromRow Actor where
 instance ToRow Actor where
   toRow Actor{..} = toRow (actorId, actorType, actorName, actorAddress, actorInbox, actorOutbox, actorFollowing, actorFollowers, actorStreams)
 
+
+
+-- | A full account id that can be looked up on the server
+data Account = Account { 
+  accountName :: String     -- ^ Name, e.g. "chuwy" in "acct:chuwy@vaba.es"
+, accountDomain :: String   -- ^ Domain, e.g. "chuwy" in "acct:chuwy@vaba.es"
+} deriving (Eq)
+
+instance Show Account where
+  show Account { accountName=n, accountDomain=d } = "acct:" ++ n ++ "@" ++ d
+  
+instance FromJSON Account where
+  parseJSON (String s) = case (readAccount $ T.unpack s) of
+    Right acc -> pure acc
+    Left err -> prependFailure "parsing Account failed, " (typeMismatch "Object" (String s))
+  parseJSON invalid = prependFailure "parsing Account failed, " (typeMismatch "String" invalid)
+
+instance ToJSON Account where
+  toJSON = strJson . show
+    where strJson = toJSON
+
+instance FromHttpApiData Account where
+  parseQueryParam s = case (readAccount $ T.unpack s) of
+    Left e -> Left $ T.pack e
+    Right a -> Right a
+
+-- | Parse 'acct:name@domain:port' into Account
+readAccount :: String -> Either String Account
+readAccount s = case wordsWhen (== '@') s of
+  prefix : domain : [] -> case (stripPrefix acct prefix) of
+    Just name -> Right $ Account name domain
+    Nothing -> Left "Missing acct: prefix"
+  _ -> Left "Expected acct:prefix@domain format"
+  where acct = "acct:"
+        wordsWhen :: (Char -> Bool) -> String -> [String]
+        wordsWhen p s = case dropWhile p s of
+                             "" -> []
+                             s' -> w : wordsWhen p s''
+                                   where (w, s'') = break p s'
+        
+ownAccount :: Config -> Account
+ownAccount config = Account (name config) socket
+  where socket = (host config) ++ ":" ++ show (port config)
+
+accountUrl :: Account -> T.Text
+accountUrl account = T.pack $ "https://" ++ accountDomain account ++ "/users/" ++ accountName account
+
+inboxUrl :: Account -> T.Text
+inboxUrl account = T.pack $ "https://" ++ accountDomain account ++ "/users/" ++ accountName account ++ "/inbox"
