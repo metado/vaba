@@ -23,6 +23,7 @@ type URL = String
 profilePage :: T.Text
 profilePage = "http://webfinger.net/rel/profile-page"
 
+-- | One of possible types of 'rel' property
 data Rel = ProfilePage String URL | Self String URL deriving (Eq, Show, Generic)
 
 instance ToJSON Rel where
@@ -69,11 +70,13 @@ wordsWhen p s = case dropWhile p s of
                            where (w, s'') = break p s'
 
 
+-- | A full account id that can be looked up on the server
 data Account = Account { 
-  accountName :: String
-, accountDomain :: String
+  accountName :: String     -- ^ Name, e.g. "chuwy" in "acct:chuwy@vaba.es"
+, accountDomain :: String   -- ^ Domain, e.g. "vaba.es" in "acct:chuwy@vaba.es"
 } deriving (Eq)
 
+-- | A cannonical representation of an Account
 instance Show Account where
   show Account { accountName=n, accountDomain=d } = "acct:" ++ n ++ "@" ++ d
   
@@ -82,7 +85,6 @@ instance FromJSON Account where
     Right acc -> pure acc
     Left err -> prependFailure "parsing Coord failed, " (typeMismatch "Object" (String s))
   parseJSON invalid = prependFailure "parsing Account failed, " (typeMismatch "String" invalid)
-
 
 instance ToJSON Account where
   toJSON = strJson . show
