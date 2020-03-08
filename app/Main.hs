@@ -4,9 +4,11 @@
 
 module Main where
 
+import           GHC.Natural (naturalToInt)
 import           Control.Monad
 import           System.Environment (getArgs)
 import           Network.Wai.Handler.Warp (run)
+import           Text.URI (renderStr)
 
 import           Api.Server (app)
 import           Repl (repl)
@@ -29,7 +31,7 @@ main = do
     command <- fmap parseArgs getArgs
     let configPath = getConfigPath command 
     config <- Config.loadConfig configPath
+    let endpoint = renderStr $ Config.ownHost config
     case command of
-      Server _ -> putStrLn "Running vaba server..." >> (app config) >>= \a -> run 8081 a
+      Server _ -> putStrLn ("Running vaba server on " <> endpoint) >> (app config) >>= run (naturalToInt $ Config.port config)
       Repl _ -> putStrLn "Welcome to the Vaba REPL!" >> forever (repl config)
-    

@@ -2,9 +2,10 @@
 
 ## Endpoints
 
-### Client/UI-facing endpointsfe
+### Client/UI-facing endpoints
 
-- `GET /api/feed` - returns all posts from your node and friend-nodes, e.g. `[{"author": "alice@alice.me", "body": "Hello, world"}]`
+- `GET /users/:name` - an actor endpoint; every instance right now can host only one user (actor) and it is specified in config
+  e.g. for `bob@vaba.org`, an actor endpoint would be `https://vaba.org/users/bob`
 - `POST /api/feed` - creates a new post
 
 ### Node/backend-facing endpoints

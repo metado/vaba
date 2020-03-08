@@ -1,43 +1,34 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
 
-module Api.WebFinger where
+module Api.WebFinger (WebFingerAPI, webFinger) where
 
-import qualified Data.Aeson as Json
-import           GHC.Generics hiding (Meta)
 import           Control.Monad.Except
-import           Servant hiding (Link)
-import           Data.String
+import qualified Data.Text as T
+import           GHC.Generics hiding (Meta)
+import           Servant
 
 import           Config
+import           Data (Account(..), ownAccount, Fingerprint(..), Rel(..))
 
-type WebFingerAPI = ".well-known" :> "webfinger" :> QueryParam "resource" String :> Get '[JSON] [Fingerprint]
+type WebFingerAPI = ".well-known" :> "webfinger" :> QueryParam "resource" Account :> Get '[JSON] Fingerprint
 
-data Account = Account { 
-  name :: String
-, domain :: String
-} deriving (Eq)
+webFingerAPI :: Proxy WebFingerAPI
+webFingerAPI = Proxy
 
-instance Show Account where
-  show Account { name=n, domain=d } = "acct:" ++ n ++ "@" ++ d
-  
+webFinger :: Config -> Server WebFingerAPI
+webFinger config (Just account) = response
+  where getPosts :: Handler Fingerprint
+        getPosts = liftIO $ ownFinger <$ (putStrLn $ "requesting " ++ show account)
+        response = if matching then getPosts else throwError err404
+        matching = subject ownFinger == account
+        ownFinger = getOwnFinger config
+webFinger _ Nothing = throwError err404
 
-data Link = Link {
-  rel :: String
-, linkType :: String
-, href :: String
-} deriving (Eq, Show, Generic)
-
-data Fingerprint = Fingerprint {
-  subject :: Account
-, links :: [Link]
-} deriving (Eq, Show, Generic)
-
-outboxAPI :: Proxy WebFingerAPI
-outboxAPI = Proxy
-
-outboxEndpoint :: Config -> Server WebFingerAPI
-outboxEndpoint resource config = getPosts
-  where getPosts :: Handler [Fingerprint]
-        getPosts = liftIO $ undefined
+getOwnFinger :: Config -> Fingerprint
+getOwnFinger config = Fingerprint { subject = ownAccount config, links = [rel] } 
+  where rel = Self "application/activity+json" (ownEndpoint config)

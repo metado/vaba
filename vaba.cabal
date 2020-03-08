@@ -12,24 +12,26 @@ build-type:          Simple
 extra-source-files:  CHANGELOG.md
 cabal-version:       >=1.10
 
-executable vaba
-  main-is:             Main.hs
-  other-modules:       Data
+library
+  hs-source-dirs:      src
+  exposed-modules:     Data
                      , Config
                      , Frontend
                      , Client
                      , Database
                      , Repl
+                     , Instances
                      , Api.Server
                      , Api.Feed
                      , Api.PostApi
                      , Api.Inbox
                      , Api.Outbox
                      , Api.WebFinger
-  -- other-extensions:    
+                     , Api.Actor
   build-depends:       base >=4.9
                      , base-compat
                      , text
+                     , exceptions
                      , aeson
                      , string-conversions
                      , time
@@ -37,6 +39,7 @@ executable vaba
                      , directory
                      , bytestring
                      , mtl
+                     , lens
                      , attoparsec
                      , http-media
                      , blaze-markup
@@ -44,14 +47,22 @@ executable vaba
                      , lucid
                      , dhall
                      , cmark
+                     , modern-uri
                      , servant
                      , servant-server
                      , servant-elm
                      , elm-bridge
-                     , wai 
                      , warp 
                      , http-conduit
                      , sqlite-simple
                      , aeson
- hs-source-dirs:       src
+
+executable vaba
+  main-is:             Main.hs
+  build-depends:       base >=4.9
+                     , warp 
+                     , vaba
+                     , modern-uri
+  -- other-extensions:    
+ hs-source-dirs:       app
  default-language:     Haskell2010
