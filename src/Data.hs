@@ -21,9 +21,10 @@ import qualified Elm.Derive                     as ED
 import           GHC.Generics
 import           Servant.API                    hiding (Post, URI)
 import qualified Elm.Derive                     as ED
-import           Text.URI (renderStr, URI)
+import           Text.URI (URI)
 
 import           Config (Config(..))
+import           Instances
 
 data Post = Post {
   body :: String,
@@ -168,16 +169,16 @@ accountUrl account = "https://" <> accountDomain account <> "/users/" <> account
 inboxUrl :: Account -> T.Text
 inboxUrl account = "https://" <> accountDomain account <> "/users/" <> accountName account <> "/inbox"
 
-data Rel = ProfilePage String URI | Self String URI deriving (Eq, Show, Generic)
+data Rel = ProfilePage T.Text URI | Self T.Text URI deriving (Eq, Show, Generic)
 
 profilePage :: T.Text
 profilePage = "http://webfinger.net/rel/profile-page"
 
 instance ToJSON Rel where
   toJSON (ProfilePage t u) = 
-    object ["rel" .= profilePage, "type" .= t, "href" .= (renderStr u)]
+    object ["rel" .= profilePage, "type" .= t, "href" .= u]
   toJSON (Self t u) =
-    object ["rel" .= self, "type" .= t, "href" .= (renderStr u)]
+    object ["rel" .= self, "type" .= t, "href" .= u]
     where self :: T.Text
           self = "self"
 
