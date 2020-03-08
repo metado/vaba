@@ -1,13 +1,13 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-} {-# LANGUAGE OverloadedStrings #-}
 
 module Data where
 
 import           Data.Aeson
 import           Data.Aeson.Types
+import           Data.Aeson.TH as ATH
 import           Data.List (stripPrefix)
 import qualified Data.Text as T
 import           Data.Time (UTCTime)
@@ -19,8 +19,9 @@ import           Database.SQLite.Simple.ToRow
 import           Database.SQLite.Simple.FromField
 import qualified Elm.Derive                     as ED
 import           GHC.Generics
-import           Servant.API                    hiding (Post)
+import           Servant.API                    hiding (Post, URI)
 import qualified Elm.Derive                     as ED
+import           Text.URI (renderStr, URI)
 
 import           Config (Config(..))
 
@@ -122,14 +123,14 @@ instance ToRow Actor where
 -- | A full account id that can be looked up on the server
 data Account = Account { 
   accountName :: T.Text     -- ^ Name, e.g. "chuwy" in "acct:chuwy@vaba.es"
-, accountDomain :: String   -- ^ Domain, e.g. "chuwy" in "acct:chuwy@vaba.es"
+, accountDomain :: T.Text   -- ^ Domain, e.g. "chuwy" in "acct:chuwy@vaba.es"
 } deriving (Eq)
 
 instance Show Account where
-  show Account { accountName=n, accountDomain=d } = "acct:" ++ T.unpack n ++ "@" ++ d
+  show Account { accountName=n, accountDomain=d } = T.unpack ("acct:" <> n <> "@" <> d)
   
 instance FromJSON Account where
-  parseJSON (String s) = case (readAccount $ T.unpack s) of
+  parseJSON (String s) = case (readAccount s) of
     Right acc -> pure acc
     Left err -> prependFailure "parsing Account failed, " (typeMismatch "Object" (String s))
   parseJSON invalid = prependFailure "parsing Account failed, " (typeMismatch "String" invalid)
@@ -139,15 +140,15 @@ instance ToJSON Account where
     where strJson = toJSON
 
 instance FromHttpApiData Account where
-  parseQueryParam s = case (readAccount $ T.unpack s) of
+  parseQueryParam s = case (readAccount s) of
     Left e -> Left $ T.pack e
     Right a -> Right a
 
 -- | Parse 'acct:name@domain:port' into Account
-readAccount :: String -> Either String Account
-readAccount s = case wordsWhen (== '@') s of
+readAccount :: T.Text -> Either String Account
+readAccount s = case (wordsWhen (== '@') (T.unpack s)) of
   prefix : domain : [] -> case (stripPrefix acct prefix) of
-    Just name -> Right $ Account (T.pack name) domain
+    Just name -> Right $ Account (T.pack name) (T.pack domain)
     Nothing -> Left "Missing acct: prefix"
   _ -> Left "Expected acct:prefix@domain format"
   where acct = "acct:"
@@ -159,10 +160,35 @@ readAccount s = case wordsWhen (== '@') s of
         
 ownAccount :: Config -> Account
 ownAccount config = Account (name config) socket
-  where socket = (host config) ++ ":" ++ show (port config)
+  where socket = (host config) <> ":" <> (T.pack $ show $ port config)
 
 accountUrl :: Account -> T.Text
-accountUrl account = T.pack $ "https://" ++ accountDomain account ++ "/users/" ++ T.unpack (accountName account)
+accountUrl account = "https://" <> accountDomain account <> "/users/" <> accountName account
 
 inboxUrl :: Account -> T.Text
-inboxUrl account = T.pack $ "https://" ++ accountDomain account ++ "/users/" ++ T.unpack (accountName account) ++ "/inbox"
+inboxUrl account = "https://" <> accountDomain account <> "/users/" <> accountName account <> "/inbox"
+
+data Rel = ProfilePage String URI | Self String URI deriving (Eq, Show, Generic)
+
+profilePage :: T.Text
+profilePage = "http://webfinger.net/rel/profile-page"
+
+instance ToJSON Rel where
+  toJSON (ProfilePage t u) = 
+    object ["rel" .= profilePage, "type" .= t, "href" .= (renderStr u)]
+  toJSON (Self t u) =
+    object ["rel" .= self, "type" .= t, "href" .= (renderStr u)]
+    where self :: T.Text
+          self = "self"
+
+instance FromJSON Rel where
+  parseJSON = undefined
+
+
+data Fingerprint = Fingerprint {
+  subject :: Account
+, links :: [Rel]
+} deriving (Eq, Show, Generic)
+
+ATH.deriveJSON ATH.defaultOptions ''Fingerprint
+
